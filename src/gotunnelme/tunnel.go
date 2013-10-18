@@ -43,7 +43,7 @@ func (self *TunnelConn) Tunnel(replyCh chan<- int) error {
 	}
 
 	if Debug {
-		fmt.Printf("Connect remote[%s:%d] successful!", self.remoteHost, self.remotePort)
+		fmt.Printf("Connect remote[%s:%d] successful!\n", self.remoteHost, self.remotePort)
 	}
 
 	localConn, localErr := self.connectLocal()
@@ -55,17 +55,36 @@ func (self *TunnelConn) Tunnel(replyCh chan<- int) error {
 		return localErr
 	}
 	if Debug {
-		fmt.Printf("Connect local[:%s] successful!", self.localPort)
+		fmt.Printf("Connect local[:%d] successful!\n", self.localPort)
 	}
 
 	self.remoteConn = remoteConn
 	self.localConn = localConn
 	go func() {
-		_, err := io.Copy(remoteConn, localConn)
+		var err error
+		for {
+			_, err = io.Copy(remoteConn, localConn)
+			if err != nil {
+				if Debug {
+					fmt.Printf("Stop copy form local to remote! error=[%v]\n", err)
+				}
+				break
+			}
+		}
 		self.errorChannel <- err
 	}()
 	go func() {
-		_, err := io.Copy(localConn, remoteConn)
+		var err error
+		for {
+			_, err = io.Copy(localConn, remoteConn)
+			if err != nil {
+				if Debug {
+					fmt.Printf("Stop copy form remote to local! error=[%v]\n", err)
+				}
+				break
+			}
+
+		}
 		self.errorChannel <- err
 	}()
 	err := <-self.errorChannel
@@ -85,10 +104,6 @@ func (self *TunnelConn) StopTunnel() error {
 
 func (self *TunnelConn) connectRemote() (net.Conn, error) {
 	remoteAddr := fmt.Sprintf("%s:%d", self.remoteHost, self.remotePort)
-	if Debug {
-		fmt.Printf("Start connecting to remote[%s]\n", remoteAddr)
-	}
-
 	addr := remoteAddr
 	proxy := os.Getenv("HTTP_PROXY")
 	if proxy == "" {
@@ -103,9 +118,6 @@ func (self *TunnelConn) connectRemote() (net.Conn, error) {
 	remoteConn, remoteErr := net.Dial("tcp", addr)
 	if remoteErr != nil {
 		return nil, remoteErr
-	}
-	if Debug {
-		fmt.Printf("Connect to [%s]\n", addr)
 	}
 
 	if len(proxy) > 0 {
@@ -131,7 +143,7 @@ func (self *TunnelConn) connectRemote() (net.Conn, error) {
 }
 
 func (self *TunnelConn) connectLocal() (net.Conn, error) {
-	localAddr := fmt.Sprint("%s:%d", "localhost", self.localPort)
+	localAddr := fmt.Sprintf("%s:%d", "localhost", self.localPort)
 	return net.Dial("tcp", localAddr)
 }
 
