@@ -1,14 +1,18 @@
 package gotunnelme
 
 import (
+	"fmt"
 	"testing"
 )
 
 func TestTunnel(t *testing.T) {
 	Debug = true
-	err := CreateTunnel("noah", 8787)
-	if err != nil {
-		t.Fatal(err)
+	tunnel := NewTunnel()
+	url, getUrlErr := tunnel.GetUrl("noah")
+	if getUrlErr != nil {
+		t.Fatal(getUrlErr)
 	}
+	fmt.Println("Get Url:", url)
+	tunnel.CreateTunnel(8787)
 
 }

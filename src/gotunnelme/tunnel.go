@@ -148,16 +148,13 @@ type Tunnel struct {
 	cmdChan         chan TunnelCommand
 }
 
-func NewTunnel(assignedUrlInfo *AssignedUrlInfo, localPort int) *Tunnel {
+func NewTunnel() *Tunnel {
 	tunnel := &Tunnel{}
-	tunnel.assignedUrlInfo = assignedUrlInfo
-	tunnel.localPort = localPort
-	tunnel.tunnelConns = make([]*TunnelConn, assignedUrlInfo.MaxConnCount)
 	tunnel.cmdChan = make(chan TunnelCommand, 1)
 	return tunnel
 }
 
-func (self *Tunnel) StartTunnel() error {
+func (self *Tunnel) startTunnel() error {
 	if err := self.checkLocalPort(); err != nil {
 		return err
 	}
@@ -204,14 +201,20 @@ func (self *Tunnel) StopTunnel() {
 	}
 }
 
-func CreateTunnel(assignedDomain string, localPort int) error {
+func (self *Tunnel) GetUrl(assignedDomain string) (string, error) {
 	if len(assignedDomain) == 0 {
 		assignedDomain = "?new"
 	}
 	assignedUrlInfo, err := GetAssignedUrl(assignedDomain)
 	if err != nil {
-		return err
+		return "", err
 	}
-	tunnel := NewTunnel(assignedUrlInfo, localPort)
-	return tunnel.StartTunnel()
+	self.assignedUrlInfo = assignedUrlInfo
+	self.tunnelConns = make([]*TunnelConn, assignedUrlInfo.MaxConnCount)
+	return assignedUrlInfo.Url, nil
+}
+
+func (self *Tunnel) CreateTunnel(localPort int) error {
+	self.localPort = localPort
+	return self.startTunnel()
 }
