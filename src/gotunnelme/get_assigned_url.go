@@ -7,10 +7,8 @@ import (
 	"net/http"
 )
 
-var Debug = false
-
 const (
-	localtunnel_server = "http://localtunnel.me/%s"
+	localtunnelServer = "http://localtunnel.me/"
 )
 
 type AssignedUrlInfo struct {
@@ -21,7 +19,10 @@ type AssignedUrlInfo struct {
 }
 
 func GetAssignedUrl(assignedDomain string) (*AssignedUrlInfo, error) {
-	url := fmt.Sprintf(localtunnel_server, assignedDomain)
+	if len(assignedDomain) == 0 {
+		assignedDomain = "?new"
+	}
+	url := fmt.Sprintf(localtunnelServer+"%s", assignedDomain)
 	request, _ := http.NewRequest("GET", url, nil)
 	response, httpErr := http.DefaultClient.Do(request)
 	if httpErr != nil {

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestGetLatestAqiEntity(t *testing.T) {
+func _TestGetAssignedUrl(t *testing.T) {
 	Debug = false
 	assignedUrlInfo, err := GetAssignedUrl("noah")
 	if err != nil {
