@@ -207,6 +207,9 @@ func (self *Tunnel) checkLocalPort() error {
 }
 
 func (self *Tunnel) StopTunnel() {
+	if Debug {
+		fmt.Printf("Stop tunnel for localPort[%d]!\n", self.localPort)
+	}
 	self.cmdChan <- stopTunnelCmd
 	for _, tunnelCon := range self.tunnelConns {
 		tunnelCon.StopTunnel()
